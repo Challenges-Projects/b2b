@@ -24,7 +24,7 @@ docker compose up --build
 ```bash
 cd packages/lambda-orchestrator
 npm install
-npm run build
+npm run dev
 # POST http://localhost:3000/orchestrator/create-and-confirm-order
 ```
 
