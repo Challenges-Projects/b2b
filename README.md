@@ -1,4 +1,4 @@
-# B2B Challenge (Node.js + TypeScript + MySQL + Docker + Serverless)
+# B2B Challenge (Node.js + TypeScript + MySQL + Docker + Lambda - Serverless)
 
 ## Requisitos
 - Docker Desktop
