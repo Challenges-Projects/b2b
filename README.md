@@ -16,8 +16,8 @@
 ## Levantar el entorno
 ```bash
 docker compose up --build
-# Customers: http://localhost:3001
-# Orders:    http://localhost:3002
+# Customers: http://127.0.0.1:3001
+# Orders:    http://127.0.0.1:3002
 ```
 
 ## Lambda local (Serverless Offline)
@@ -42,6 +42,6 @@ Ejemplo del JSON:
 
 ## Para Documentacion, pruebas y ejemplos curl en OpenAPI
 ```
-# Customers: http://localhost:3001/docs
-# Orders:    http://localhost:3002/docs
+# Customers: http://127.0.0.1:3001/docs
+# Orders:    http://127.0.0.1:3002/docs
 ```
