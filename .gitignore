@@ -1,0 +1,10 @@
+ANOTACIONES.md
+/packages/customers-api/node_modules
+/packages/customers-api/dist
+/packages/customers-api/.env
+/packages/orders-api/node_modules
+/packages/orders-api/dist
+/packages/orders-api/.env
+/packages/lambda-orchestrator/node_modules
+/packages/lambda-orchestrator/dist
+/packages/lambda-orchestrator/.env

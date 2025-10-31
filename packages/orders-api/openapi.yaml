@@ -1,0 +1,467 @@
+openapi: 3.0.3
+info: { title: Orders API, version: "1.0.0" }
+servers:
+  - url: http://localhost:3002
+    description: Local development server
+
+paths:
+  /health:
+    { get: { summary: Health, responses: { "200": { description: OK } },tags: [Default] } }
+  /gettoken:
+    { get: { summary: Obtener Token para pruebas, responses: { "200": { description: OK } },tags: [Default] } }  
+  /products:
+    post:
+        summary: Crea un nuevo Producto
+        tags: [Products]
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreate'
+              example:
+                sku: "SKU-007-X"
+                name: "Taper Rectangular 2L Updated"
+                price: 12.30
+                stock: 100
+        responses:
+          "201":
+            description: Producto creado exitosamente
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Product'
+      
+    get:
+      summary: Lista los Productos con paginación y búsqueda
+      tags: [Products]
+      security:
+          - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Texto de búsqueda por nombre
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+          description: ID del último registro para continuar desde ahí
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Límite de resultados
+      responses:
+        "200":
+          description: Lista de Productos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next_cursor:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Producto'
+  /products/{id}:
+    get:
+      summary: Obtiene un producto por su ID
+      tags: [Products]
+      security:
+            - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Identificador único del producto
+      responses:
+        "200":
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        "404":
+          description: Producto no encontrado
+
+    patch:
+        summary: Actualizar producto por ID
+        tags: [Products]
+        security:
+          - bearerAuth: []
+        parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Identificador único del Producto
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductUpdate'
+              example:
+                sku: "SKU-007-X"
+                name: "Taper Rectangular 2L Updated"
+                price: 12.30
+                stock: 100
+        responses:
+          "200":
+            description: Producto actualizado exitosamente
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Product'
+  
+  /orders:
+    post:
+      summary: Crear una nueva orden
+      description: Crea una orden asociada a un cliente y sus productos.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customer_id:
+                  type: integer
+                  example: 1
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_id:
+                        type: integer
+                        example: 2
+                      qty:
+                        type: integer
+                        example: 3
+            example:
+              customer_id: 1
+              items:
+                - product_id: 2
+                  qty: 3
+      responses:
+        "201":
+          description: Orden creada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 101
+                  status:
+                    type: string
+                    example: CONFIRMED
+                  total_cents:
+                    type: integer
+                    example: 459900
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_id:
+                          type: integer
+                          example: 2
+                        qty:
+                          type: integer
+                          example: 3
+                        unit_price_cents:
+                          type: integer
+                          example: 129900
+                        subtotal_cents:
+                          type: integer
+                          example: 389700
+  /orders/{id}:
+    get:
+      summary: Obtener detalle de una orden
+      description: Retorna la información completa de una orden, incluyendo sus ítems asociados.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador único de la orden.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Detalle de la orden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 101
+                  customer_id:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    enum: [CREATED, CONFIRMED, CANCELED]
+                    example: CONFIRMED
+                  total_cents:
+                    type: integer
+                    example: 459900
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_id:
+                          type: integer
+                          example: 2
+                        qty:
+                          type: integer
+                          example: 3
+                        unit_price_cents:
+                          type: integer
+                          example: 129900
+                        subtotal_cents:
+                          type: integer
+                          example: 389700
+        "404":
+          description: Orden no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order not found"
+  /orders/{id}/confirm:
+    post:
+      summary: Confirmar una orden
+      description: |
+        Confirma una orden existente.  
+        Este endpoint es **idempotente**, lo que significa que si se repite la misma llamada con el mismo valor de `X-Idempotency-Key`,
+        se devolverá el mismo resultado sin crear ni modificar duplicados.
+
+        - Si la orden está en estado `CREATED`, se confirma y se actualiza su stock.
+        - Si ya está `CONFIRMED`, devuelve el mismo resultado anterior.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador único de la orden a confirmar.
+          schema:
+            type: integer
+            example: 1
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          description: Clave única para garantizar idempotencia en la confirmación.
+          schema:
+            type: string
+            example: abc-123
+      responses:
+        "200":
+          description: Orden confirmada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 101
+                  status:
+                    type: string
+                    example: CONFIRMED
+                  total_cents:
+                    type: integer
+                    example: 459900
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_id:
+                          type: integer
+                          example: 2
+                        qty:
+                          type: integer
+                          example: 3
+                        unit_price_cents:
+                          type: integer
+                          example: 129900
+                        subtotal_cents:
+                          type: integer
+                          example: 389700
+        "400":
+          description: Error en la solicitud o estado inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order cannot be confirmed"
+        "404":
+          description: Orden no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order not found"
+        "409":
+          description: Conflicto — se detectó una clave idempotente repetida con un resultado distinto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Idempotency conflict detected"              
+  /orders/{id}/cancel:
+    post:
+      summary: Cancelar una orden
+      description: |
+        Cancela una orden existente según su estado:
+
+        - Si la orden está en estado **CREATED**, se cancela inmediatamente y se restauran los stocks de los productos.
+        - Si está en estado **CONFIRMED**, solo puede cancelarse dentro de los **primeros 10 minutos** desde su creación.
+        - Si ha pasado el tiempo límite, se devolverá un error indicando que ya no puede cancelarse.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador único de la orden a cancelar.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Orden cancelada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 101
+                  status:
+                    type: string
+                    example: CANCELED
+                  message:
+                    type: string
+                    example: "Order canceled and stock restored successfully"
+        "400":
+          description: Estado inválido o tiempo de cancelación expirado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order cannot be canceled after 10 minutes"
+        "404":
+          description: Orden no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order not found"
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+    #serviceToken: { type: apiKey, in: header, name: Authorization }
+  schemas:
+          ProductCreate:
+            type: object
+            required: [name, sku, price,stock]
+            properties:
+              name:
+                type: string
+                example: "Tomatodos"
+              sku:
+                type: string
+                example: "SKU-000"
+              price:
+                type: float
+                example: 10.50
+              stock:
+                type: integer
+                example: 10
+          ProductUpdate:
+            type: object
+            required: []
+            properties:
+              name:
+                type: string
+                example: "Tomatodos"
+              sku:
+                type: string
+                example: "SKU-000"
+              price:
+                type: float
+                example: 10.50
+              stock:
+                type: integer
+                example: 10
+
+          Product:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Tomatodos"
+              sku:
+                type: string
+                example: "SKU-000"
+              price:
+                type: float
+                example: 10.50
+              stock:
+                type: integer
+                example: 10

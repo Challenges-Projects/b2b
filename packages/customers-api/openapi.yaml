@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info: { title: Customers API, version: "1.0.0" }
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+
+paths:
+  /health:
+    { get: { summary: Health, responses: { "200": { description: OK } },tags: [Default] } }
+  /gettoken:
+    { get: { summary: Obtener Token para pruebas, responses: { "200": { description: OK } },tags: [Default] } }  
+  /customers:
+    post:
+        summary: Crea un nuevo cliente
+        tags: [Customers]
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerCreate'
+              example:
+                name: "Juan Perez"
+                email: "juanperez@example.com"
+                phone: "0991234567"
+        responses:
+          "201":
+            description: Cliente creado exitosamente
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Customer'
+      
+    get:
+      summary: Lista los clientes con paginación y búsqueda
+      tags: [Customers]
+      security:
+          - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Texto de búsqueda por nombre o email
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+          description: ID del último registro para continuar desde ahí
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Límite de resultados
+      responses:
+        "200":
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next_cursor:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+  /customers/{id}:
+    get:
+      summary: Obtiene un cliente por su ID
+      tags: [Customers]
+      security:
+            - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Identificador único del cliente
+      responses:
+        "200":
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        "404":
+          description: Cliente no encontrado
+
+    put:
+        summary: Actualizar cliente por ID
+        tags: [Customers]
+        security:
+          - bearerAuth: []
+        parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Identificador único del cliente
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerUpdate'
+              example:
+                name: "Juan Perez"
+                email: "juanperez@example.com"
+                phone: "0991234567"
+        responses:
+          "200":
+            description: Cliente actualizado exitosamente
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Customer'
+    delete:
+        summary: Eliminar cliente por ID
+        tags: [Customers]
+        security:
+          - bearerAuth: []
+        parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Identificador único del cliente
+        responses:
+          "204":
+            description: Cliente eliminado exitosamente
+            
+  /internal/customers/{id}:
+    get:
+      summary: Interno - Obtiene un cliente por su ID
+      tags: [Customers]
+      security:
+            - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Identificador único del cliente
+      responses:
+        "200":
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        "404":
+          description: Cliente no encontrado
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+    #serviceToken: { type: apiKey, in: header, name: Authorization }
+  schemas:
+          CustomerCreate:
+            type: object
+            required: [name, email, phone]
+            properties:
+              name:
+                type: string
+                example: "Juan Perez"
+              email:
+                type: string
+                example: "juanperez@example.com"
+              phone:
+                type: string
+                example: "0991234567"
+          CustomerUpdate:
+            type: object
+            required: [name, email, phone]
+            properties:
+              name:
+                type: string
+                example: "Juan Perez"
+              email:
+                type: string
+                example: "juanperez@example.com"
+              phone:
+                type: string
+                example: "0991234567"
+
+          Customer:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Juan Perez"
+              email:
+                type: string
+                example: "juanperez@example.com"
+              phone:
+                type: string
+                example: "0991234567"
+          

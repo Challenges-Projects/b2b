@@ -1,0 +1,28 @@
+service: lambda-orchestrator
+frameworkVersion: "3"
+provider:
+  name: aws
+  #runtime: nodejs22.x
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    CUSTOMERS_API_BASE: ${env:CUSTOMERS_API_BASE, "http://127.0.0.1:3001"}
+    ORDERS_API_BASE: ${env:ORDERS_API_BASE, "http://127.0.0.1:3002"}
+    SERVICE_TOKEN: ${env:SERVICE_TOKEN, "d03a6a51833e5c6ae413dcf004d25e0a677362e2e5ddd441"}
+    #CUSTOMERS_API_BASE: ${env:CUSTOMERS_API_BASE}
+    #ORDERS_API_BASE: ${env:ORDERS_API_BASE}
+    #SERVICE_TOKEN: ${env:SERVICE_TOKEN}
+functions:
+  createAndConfirm:
+    handler: dist/handler.createAndConfirmOrder
+    events:
+      - httpApi:
+          path: /orchestrator/create-and-confirm-order
+          method: POST
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+  
+custom:
+  dotenv:
+    path: ./.env
