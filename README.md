@@ -26,6 +26,18 @@ cd packages/lambda-orchestrator
 npm install
 npm run dev
 # POST http://localhost:3000/orchestrator/create-and-confirm-order
+Ejemplo del JSON:
+{
+    "customer_id": 1,
+    "items": [
+        {
+            "product_id": 2,
+            "qty": 3
+        }
+    ],
+    "idempotency_key": "abc-123",
+    "correlation_id": "req-789"
+}
 ```
 
 ## Para Documentacion, pruebas y ejemplos curl en OpenAPI
