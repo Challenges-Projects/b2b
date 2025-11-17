@@ -8,5 +8,6 @@ export const createHttpClient = (baseURL: string, token?: string): AxiosInstance
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     timeout: 10000,
+    validateStatus: () => true, // ✅ no lanza error por códigos HTTP
   });
 };
